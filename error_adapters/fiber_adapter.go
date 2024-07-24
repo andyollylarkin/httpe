@@ -1,6 +1,7 @@
 package erroradapters
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/andyollylarkin/httpe"
@@ -30,6 +31,12 @@ func (fw *fiberWriter) WriteHeader(statusCode int) {
 func FiberResponseWithError(c *fiber.Ctx, err error) error {
 	resp := &fiberWriter{
 		out: make([]byte, 0),
+	}
+
+	_, ok := err.(json.Marshaler)
+
+	if ok {
+		c.Set("Content-Type", fiber.MIMEApplicationJSON)
 	}
 
 	writeErr := httpe.ResponseWithError(resp, err)

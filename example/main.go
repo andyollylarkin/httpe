@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"net/http"
 
@@ -14,9 +13,9 @@ func main() {
 	app := fiber.New(fiber.Config{})
 
 	app.Get("/test", func(c *fiber.Ctx) error {
-		httpErr := httpe.NewError(errors.New("Not found"), http.StatusNotFound)
+		msgErr := httpe.NewErrorMessageRaw(httpe.Code("TEST"), "some error", http.StatusBadRequest)
 
-		err := erroradapters.FiberResponseWithError(c, httpErr)
+		err := erroradapters.FiberResponseWithError(c, msgErr)
 		if err != nil {
 			log.Println("Write error: ", err.Error())
 		}

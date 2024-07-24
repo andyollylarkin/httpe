@@ -9,9 +9,9 @@ func TestError_Unwrap(t *testing.T) {
 	baseError := errors.New("base error")
 	baseError2 := errors.New("base error2")
 
-	errHttp500 := HttpError{
-		err:    baseError2,
-		status: 500,
+	errHttp500 := StatusError{
+		Err:    baseError2,
+		Status: 500,
 	}
 
 	base := Error{
@@ -22,7 +22,7 @@ func TestError_Unwrap(t *testing.T) {
 	if ok := errors.Is(base, errHttp500); !ok {
 		t.Error("Want HttpError")
 	} else {
-		if status := base.httpError.Status(); status != 500 {
+		if status := base.httpError.StatusCode(); status != 500 {
 			t.Error("Invalid http status")
 		}
 	}

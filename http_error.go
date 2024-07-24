@@ -1,33 +1,38 @@
 package httpe
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type HttpError struct {
-	err    error
-	status int
+type StatusError struct {
+	Err    error
+	Status int
 }
 
-func (e HttpError) Unwrap() error {
-	return e.err
+func (se StatusError) MarshalJSON() ([]byte, error) {
+	return json.Marshal(se.Err.Error())
 }
 
-func (e HttpError) Status() int {
-	if e.status == 0 {
+func (e StatusError) Unwrap() error {
+	return e.Err
+}
+
+func (e StatusError) StatusCode() int {
+	if e.Status == 0 {
 		return http.StatusInternalServerError
 	}
-	return e.status
+	return e.Status
 }
 
-func (e HttpError) Error() string {
-	return fmt.Sprintf("Error: %s: status - %d", e.err.Error(), e.status)
+func (e StatusError) Error() string {
+	return fmt.Sprintf("Error: %s: status - %d", e.Err.Error(), e.Status)
 }
 
 type Error struct {
 	baseError error
-	httpError HttpError
+	httpError StatusError
 }
 
 func (e Error) Error() string {
@@ -41,9 +46,9 @@ func (e Error) Unwrap() error {
 func NewError(base error, status int) Error {
 	return Error{
 		baseError: base,
-		httpError: HttpError{
-			err:    base,
-			status: status,
+		httpError: StatusError{
+			Err:    base,
+			Status: status,
 		},
 	}
 }
