@@ -1,6 +1,9 @@
 package httpe
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type HttpError struct {
 	err    error
@@ -12,6 +15,9 @@ func (e HttpError) Unwrap() error {
 }
 
 func (e HttpError) Status() int {
+	if e.status == 0 {
+		return http.StatusInternalServerError
+	}
 	return e.status
 }
 
