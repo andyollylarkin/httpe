@@ -62,8 +62,13 @@ func ResponseWithError(w http.ResponseWriter, err error) error {
 			}
 		}
 
+		jsonErr, err := httpErrMsg.MarshalJSON()
+		if err != nil {
+			return err
+		}
+
 		w.WriteHeader(statusErr.StatusCode())
-		_, err = w.Write([]byte(httpErrMsg.Error()))
+		_, err = w.Write(jsonErr)
 		if err != nil {
 			return err
 		}
