@@ -1,27 +1,14 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/andyollylarkin/httpe"
-	erroradapters "github.com/andyollylarkin/httpe/error_adapters"
-	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-	app := fiber.New(fiber.Config{})
+	m := httpe.NewErrorMessageRaw(httpe.Code("BAD"), "Example Error", http.StatusInternalServerError)
 
-	app.Get("/test", func(c *fiber.Ctx) error {
-		msgErr := httpe.NewErrorMessageRaw(httpe.Code("TEST"), "some error", http.StatusBadRequest)
-
-		err := erroradapters.FiberResponseWithError(c, msgErr)
-		if err != nil {
-			log.Println("Write error: ", err.Error())
-		}
-
-		return nil
-	})
-
-	app.Listen(":9091")
+	fmt.Println(m.Error())
 }

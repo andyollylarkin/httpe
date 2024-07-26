@@ -23,10 +23,14 @@ func (er SuccessResponse) MarshalJSON() ([]byte, error) {
 }
 
 type ErrorResponse struct {
-	Error struct {
+	ErrorStruct struct {
 		Code        string `json:"code"`
 		Description error  `json:"description"`
 	} `json:"error"`
+}
+
+func (e ErrorResponse) Error() string {
+	return e.ErrorStruct.Description.Error()
 }
 
 type Code string
@@ -43,7 +47,7 @@ func (m Message) Unwrap() error {
 		return nil
 	}
 
-	var currentErr error = e.Error.Description
+	var currentErr error = e.ErrorStruct.Description
 
 	for {
 		if currentErr == nil {
@@ -68,16 +72,12 @@ func (m Message) Unwrap() error {
 }
 
 func (m Message) Error() string {
-	type mt Message
-
-	var errM = m
-
-	b, err := json.Marshal(errM)
-	if err != nil {
+	e, ok := m.Payload.(ErrorResponse)
+	if !ok {
 		return ""
 	}
 
-	return string(b)
+	return e.Error()
 }
 
 func newMessage(code Code, payload any) (Message, error) {
@@ -108,15 +108,15 @@ func NewErrorMessage(code Code, message string, httpStatusCode int) []byte {
 	return out
 }
 
-func NewErrorMessageRaw(code Code, message string, httpStatusCode int) Message {
+func NewErrorMessageRaw(code Code, errMessage string, httpStatusCode int) Message {
 	errMsg := ErrorResponse{
-		Error: struct {
+		ErrorStruct: struct {
 			Code        string `json:"code"`
 			Description error  `json:"description"`
 		}{
 			Code: string(code),
 			Description: StatusError{
-				Err:    fmt.Errorf("%s", message),
+				Err:    fmt.Errorf("%s", errMessage),
 				Status: httpStatusCode,
 			},
 		},

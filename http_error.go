@@ -27,7 +27,7 @@ func (e StatusError) StatusCode() int {
 }
 
 func (e StatusError) Error() string {
-	return fmt.Sprintf("Error: %s: status - %d", e.Err.Error(), e.Status)
+	return e.Err.Error()
 }
 
 type Error struct {
