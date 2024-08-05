@@ -6,27 +6,39 @@ import (
 	"net/http"
 )
 
-type StatusError struct {
+type StatusError interface {
+	json.Marshaler
+	StatusCode() int
+	GetError() error
+	Unwrap() error
+	error
+}
+
+type statusError struct {
 	Err    error
 	Status int
 }
 
-func (se StatusError) MarshalJSON() ([]byte, error) {
+func (se statusError) GetError() error {
+	return se.Err
+}
+
+func (se statusError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(se.Err.Error())
 }
 
-func (e StatusError) Unwrap() error {
+func (e statusError) Unwrap() error {
 	return e.Err
 }
 
-func (e StatusError) StatusCode() int {
+func (e statusError) StatusCode() int {
 	if e.Status == 0 {
 		return http.StatusInternalServerError
 	}
 	return e.Status
 }
 
-func (e StatusError) Error() string {
+func (e statusError) Error() string {
 	return e.Err.Error()
 }
 
@@ -46,7 +58,7 @@ func (e Error) Unwrap() error {
 func NewError(base error, status int) Error {
 	return Error{
 		baseError: base,
-		httpError: StatusError{
+		httpError: statusError{
 			Err:    base,
 			Status: status,
 		},

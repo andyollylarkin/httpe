@@ -54,20 +54,20 @@ func (m Message) Unwrap() error {
 			return nil
 		}
 
-		httpErr, okErr := currentErr.(StatusError)
+		httpErr, okErr := currentErr.(statusError)
 		if okErr {
 			return httpErr
 		}
 
 		e, ok := currentErr.(interface {
-			Unwrap() []error
+			Unwrap() error
 			Error() string
 		})
 		if !ok {
 			return e
 		}
 
-		currentErr = e
+		currentErr = e.Unwrap()
 	}
 }
 
@@ -108,19 +108,66 @@ func NewErrorMessage(code Code, message string, httpStatusCode int) []byte {
 	return out
 }
 
+type fakeErr struct {
+	payload any
+	status  int
+}
+
+func (e fakeErr) StatusCode() int {
+	return e.status
+}
+
+func (e fakeErr) Unwrap() error {
+	return statusError{
+		Err:    e,
+		Status: e.status,
+	}
+}
+
+func (e fakeErr) GetError() error {
+	b, _ := e.MarshalJSON()
+
+	return fmt.Errorf("%s", string(b))
+}
+
+func (e fakeErr) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.payload)
+}
+
+func (e fakeErr) Error() string {
+	b, _ := json.Marshal(e.payload)
+
+	return string(b)
+}
+
 func NewErrorMessageRaw(code Code, errMessage any, httpStatusCode int) Message {
-	msgOut, _ := json.Marshal(errMessage)
+	var msgErr StatusError
+
+	switch v := errMessage.(type) {
+	case string:
+		msgErr = statusError{
+			Err:    fmt.Errorf("%s", string(v)),
+			Status: httpStatusCode,
+		}
+	case error:
+		msgErr = statusError{
+			Err:    v,
+			Status: httpStatusCode,
+		}
+	default:
+		msgErr = fakeErr{
+			payload: errMessage,
+			status:  httpStatusCode,
+		}
+	}
 
 	errMsg := ErrorResponse{
 		ErrorStruct: struct {
 			Code        string `json:"code"`
 			Description error  `json:"description"`
 		}{
-			Code: string(code),
-			Description: StatusError{
-				Err:    fmt.Errorf("%s", string(msgOut)),
-				Status: httpStatusCode,
-			},
+			Code:        string(code),
+			Description: msgErr,
 		},
 	}
 

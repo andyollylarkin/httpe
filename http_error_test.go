@@ -9,7 +9,7 @@ func TestError_Unwrap(t *testing.T) {
 	baseError := errors.New("base error")
 	baseError2 := errors.New("base error2")
 
-	errHttp500 := StatusError{
+	errHttp500 := statusError{
 		Err:    baseError2,
 		Status: 500,
 	}

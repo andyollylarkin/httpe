@@ -24,7 +24,7 @@ func ResponseWithError(w http.ResponseWriter, err error) error {
 	}
 
 	if ok {
-		if httpErr.httpError.Err == nil || httpErr.httpError.Status == 0 {
+		if httpErr.httpError.GetError() == nil || httpErr.httpError.StatusCode() == 0 {
 			w.WriteHeader(http.StatusInternalServerError)
 
 			_, err := w.Write([]byte(err.Error()))
@@ -53,7 +53,7 @@ func ResponseWithError(w http.ResponseWriter, err error) error {
 			return nil
 		}
 
-		if statusErr.Err == nil || statusErr.Status == 0 {
+		if statusErr.GetError() == nil || statusErr.StatusCode() == 0 {
 			w.WriteHeader(http.StatusInternalServerError)
 
 			_, err := w.Write([]byte(err.Error()))
