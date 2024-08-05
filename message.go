@@ -108,7 +108,9 @@ func NewErrorMessage(code Code, message string, httpStatusCode int) []byte {
 	return out
 }
 
-func NewErrorMessageRaw(code Code, errMessage string, httpStatusCode int) Message {
+func NewErrorMessageRaw(code Code, errMessage any, httpStatusCode int) Message {
+	msgOut, _ := json.Marshal(errMessage)
+
 	errMsg := ErrorResponse{
 		ErrorStruct: struct {
 			Code        string `json:"code"`
@@ -116,7 +118,7 @@ func NewErrorMessageRaw(code Code, errMessage string, httpStatusCode int) Messag
 		}{
 			Code: string(code),
 			Description: StatusError{
-				Err:    fmt.Errorf("%s", errMessage),
+				Err:    fmt.Errorf("%s", string(msgOut)),
 				Status: httpStatusCode,
 			},
 		},

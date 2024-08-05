@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	m := httpe.NewErrorMessageRaw(httpe.Code("BAD"), "Example Error", http.StatusInternalServerError)
+	m := httpe.NewErrorMessageRaw(httpe.Code("BAD"), 1, http.StatusInternalServerError)
 
 	fmt.Println(m.Error())
 }
